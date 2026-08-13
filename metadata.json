@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Siteplan \u0026 Sarpras SMKN 1 Batumandi",
+  "description": "Sistem Informasi Siteplan Interaktif dan Sarana Prasarana SMKN 1 Batumandi",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
