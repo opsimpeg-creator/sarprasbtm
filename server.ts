@@ -2,9 +2,8 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import { createServer as createViteServer } from 'vite';
-import { Room, Sarpras, AdminUser, StatsSummary, AppSettings, DEFAULT_APP_SETTINGS } from './src/types.js';
-import { INITIAL_ROOMS, INITIAL_SARPRAS, INITIAL_ADMINS } from './src/data/initialData.js';
+import { Room, Sarpras, AdminUser, StatsSummary, AppSettings, DEFAULT_APP_SETTINGS } from './src/types';
+import { INITIAL_ROOMS, INITIAL_SARPRAS, INITIAL_ADMINS } from './src/data/initialData';
 
 // Auto-load .env file if available (for local development in VS Code)
 try {
@@ -772,6 +771,7 @@ async function startServer() {
   // --- VITE MIDDLEWARE OR STATIC SERVING ---
   if (!process.env.VERCEL) {
     if (process.env.NODE_ENV !== 'production') {
+      const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: 'spa'
