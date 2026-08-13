@@ -29,7 +29,7 @@ try {
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_ID || '1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0';
 const APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzi4ytGLJtfbDEQqLA-m5MnOTqJsKP5Aj2ALuZyMPhphUPz45o4d1FqvsoeQZt5QC36KA/exec';
-const DATA_FILE = path.join(process.cwd(), 'data_store.json');
+const DATA_FILE = process.env.VERCEL ? path.join('/tmp', 'data_store.json') : path.join(process.cwd(), 'data_store.json');
 
 function ensureHashedPassword(pass: string): string {
   if (!pass) return '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
@@ -79,6 +79,17 @@ function loadStore(): Store {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const content = fs.readFileSync(DATA_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (parsed.rooms && parsed.sarpras) {
+        return {
+          ...parsed,
+          settings: { ...DEFAULT_APP_SETTINGS, ...(parsed.settings || {}) }
+        };
+      }
+    }
+    const rootDataFile = path.join(process.cwd(), 'data_store.json');
+    if (rootDataFile !== DATA_FILE && fs.existsSync(rootDataFile)) {
+      const content = fs.readFileSync(rootDataFile, 'utf-8');
       const parsed = JSON.parse(content);
       if (parsed.rooms && parsed.sarpras) {
         return {
@@ -305,11 +316,20 @@ async function syncWithGoogleSheets() {
 // Initial async sync
 syncWithGoogleSheets();
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+export const app = express();
+app.use(express.json({ limit: '10mb' }));
+app.use((req: Request, res: Response, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-  app.use(express.json({ limit: '10mb' }));
+async function startServer() {
+  const PORT = 3000;
 
   // --- API ROUTES FIRST ---
 
@@ -750,23 +770,27 @@ function arrayToCSV(arr: Record<string, any>[]): string {
   });
 
   // --- VITE MIDDLEWARE OR STATIC SERVING ---
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req: Request, res: Response) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+  if (!process.env.VERCEL) {
+    if (process.env.NODE_ENV !== 'production') {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa'
+      });
+      app.use(vite.middlewares);
+    } else {
+      const distPath = path.join(process.cwd(), 'dist');
+      app.use(express.static(distPath));
+      app.get('*', (req: Request, res: Response) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+    }
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server SMKN 1 Batumandi running on http://0.0.0.0:${PORT}`);
     });
   }
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server SMKN 1 Batumandi running on http://0.0.0.0:${PORT}`);
-  });
 }
 
 startServer();
+
+export default app;

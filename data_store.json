@@ -646,30 +646,19 @@
       "status": "Aktif",
       "created_at": "2026-01-10 08:00:00",
       "updated_at": "2026-08-01 10:30:00"
+    },
+    {
+      "id": "ADM-003",
+      "nama": "sabil",
+      "username": "sabil",
+      "email": "sabil@admin.com",
+      "password_hash": "ca071623a06d115da519a9e9069e7e635232854dd2d40e6984066f378d8952a0",
+      "role": "Super Admin",
+      "status": "Aktif",
+      "created_at": "2026-08-12T03:28:35.523Z",
+      "updated_at": "2026-08-12T03:56:14.318Z"
     }
   ],
-  "settings": {
-    "kopSekolahUrl": "",
-    "namaInstansi": "PEMERINTAH PROVINSI KALIMANTAN SELATAN",
-    "namaSekolah": "SMK NEGERI 1 BATUMANDI",
-    "alamatSekolah": "Jl. A. Yani Km. 2.5, Batumandi, Kabupaten Balangan, Kalimantan Selatan 71663",
-    "kontakSekolah": "Website: smkn1batumandi.sch.id | Email: info@smkn1batumandi.sch.id",
-    "kepalaSekolahNama": "H. Kastalani, S.Pd, M.Pd",
-    "kepalaSekolahNip": "19720512 199802 1 003",
-    "kepalaSekolahJabatan": "Kepala SMKN 1 Batumandi",
-    "pengelolaSarprasNama": "Herman Syaufi, S.Kom",
-    "pengelolaSarprasNip": "19880914 201503 1 002",
-    "pengelolaSarprasJabatan": "Pengelola Sarana & Prasarana",
-    "aboutBadgeText": "Profil Sekolah Resmi",
-    "aboutTagText": "Kabupaten Balangan",
-    "aboutDeskripsi": "Sekolah Menengah Kejuruan Negeri unggulan di Kabupaten Balangan, Kalimantan Selatan.",
-    "aboutCard1Judul": "Program Keahlian Utama",
-    "aboutCard1Isi": "Teknik Jaringan Komputer dan Telekomunikasi\nBroadcasting dan Perfilman\nAkuntansi dan keuangan Lembaga\nDesain Komunikasi Visual\nDesain Pemodelan dan Informasi Bangunan\nTeknik Alat Berat",
-    "aboutCard2Judul": "Lokasi & Kontak",
-    "aboutCard2Isi": "Jl. A. Yani, Batumandi, Kab. Balangan, Kalimantan Selatan 71663.\nEmail: sbatumandi@gmail.com",
-    "aboutCard3Judul": "Sistem Sarpras Terpadu",
-    "aboutCard3Isi": "Aplikasi Siteplan & Sarpras memudahkan inventarisasi peralatan, pemantauan kondisi gedung, serta transparansi sarana belajar siswa."
-  },
-  "lastUpdated": "2026-08-13T11:40:36.337Z",
+  "lastUpdated": "2026-08-12T03:56:14.318Z",
   "isSyncedWithSheets": false
 }
