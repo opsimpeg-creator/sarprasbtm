@@ -27,8 +27,8 @@ try {
   }
 } catch (e) {}
 
-const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_ID || '1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0';
-const APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzi4ytGLJtfbDEQqLA-m5MnOTqJsKP5Aj2ALuZyMPhphUPz45o4d1FqvsoeQZt5QC36KA/exec';
+const SPREADSHEET_ID = process.env.SARPRAS_SHEETS_ID || process.env.GOOGLE_SHEETS_ID || '1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0';
+const APPS_SCRIPT_URL = process.env.SARPRAS_APPS_SCRIPT_URL || process.env.GOOGLE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzi4ytGLJtfbDEQqLA-m5MnOTqJsKP5Aj2ALuZyMPhphUPz45o4d1FqvsoeQZt5QC36KA/exec';
 const DATA_FILE = process.env.VERCEL ? path.join('/tmp', 'data_store.json') : path.join(process.cwd(), 'data_store.json');
 
 function ensureHashedPassword(pass: string): string {
