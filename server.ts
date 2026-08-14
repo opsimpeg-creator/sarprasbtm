@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import { Room, Sarpras, AdminUser, StatsSummary, AppSettings, DEFAULT_APP_SETTINGS } from './src/types';
+import { Room, Sarpras, AdminUser, AdminSession, StatsSummary, AppSettings, DEFAULT_APP_SETTINGS, JenisRuangan } from './src/types';
 import { INITIAL_ROOMS, INITIAL_SARPRAS, INITIAL_ADMINS } from './src/data/initialData';
 
 // Auto-load .env file if available (for local development in VS Code)
@@ -174,25 +174,51 @@ function parseCSV(csvText: string): Record<string, string>[] {
   return result;
 }
 
-// Attempt background sync with public Google Sheet if available
-async function fetchSheetCSV(sheetName: string): Promise<any[]> {
-  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    const text = await res.text();
-    return parseCSV(text);
-  } catch (e) {
-    console.warn(`Could not fetch sheet ${sheetName}:`, e);
-    return [];
+// Fetch data from Google Apps Script Web App or Google Sheets CSV fallback
+async function fetchSheetData(sheetName: string): Promise<any[]> {
+  // Method 1: Fetch directly from Google Apps Script Web App (JSON format)
+  if (APPS_SCRIPT_URL) {
+    try {
+      const url = `${APPS_SCRIPT_URL}?sheet=${encodeURIComponent(sheetName)}`;
+      const res = await fetch(url, { redirect: 'follow' });
+      if (res.ok) {
+        const text = await res.text();
+        const trimmed = text.trim();
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log(`[Google Apps Script] Successfully fetched ${parsed.length} rows for sheet ${sheetName}`);
+            return parsed;
+          }
+        }
+      }
+    } catch (e: any) {
+      console.warn(`[Google Apps Script] Fetch failed for ${sheetName}:`, e.message);
+    }
   }
+
+  // Method 2: Fallback to public Google Sheets CSV export
+  try {
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+    const res = await fetch(csvUrl);
+    if (res.ok) {
+      const text = await res.text();
+      if (!text.includes('<!DOCTYPE html>') && text.includes(',')) {
+        return parseCSV(text);
+      }
+    }
+  } catch (e) {
+    console.warn(`Could not fetch sheet CSV for ${sheetName}:`, e);
+  }
+
+  return [];
 }
 
 async function syncWithGoogleSheets() {
   try {
-    const roomsData = await fetchSheetCSV('ROOMS');
-    const sarprasData = await fetchSheetCSV('SARPRAS');
-    const adminsData = await fetchSheetCSV('ADMINS');
+    const roomsData = await fetchSheetData('ROOMS');
+    const sarprasData = await fetchSheetData('SARPRAS');
+    const adminsData = await fetchSheetData('ADMINS');
 
     let updated = false;
 
@@ -208,17 +234,17 @@ async function syncWithGoogleSheets() {
         }
 
         return {
-          id: row.id || `ROOM-${String(index + 1).padStart(3, '0')}`,
-          kode_ruangan: row.kode_ruangan || `R-${index + 1}`,
-          nama_ruangan: row.nama_ruangan || `Ruangan ${index + 1}`,
-          jenis_ruangan: row.jenis_ruangan || 'Ruang Kelas',
+          id: String(row.id || `ROOM-${String(index + 1).padStart(3, '0')}`).trim(),
+          kode_ruangan: String(row.kode_ruangan || `R-${index + 1}`).trim(),
+          nama_ruangan: String(row.nama_ruangan || `Ruangan ${index + 1}`).trim(),
+          jenis_ruangan: (String(row.jenis_ruangan || 'Ruang Kelas').trim()) as JenisRuangan,
           lantai: Number(row.lantai) || 1,
           posisi_siteplan: pos,
-          deskripsi: row.deskripsi || '',
-          foto: row.foto || '',
-          status: row.status || 'Aktif',
-          created_at: row.created_at || new Date().toISOString(),
-          updated_at: row.updated_at || new Date().toISOString()
+          deskripsi: String(row.deskripsi || '').trim(),
+          foto: String(row.foto || '').trim(),
+          status: (String(row.status || 'Aktif').trim()) as Room['status'],
+          created_at: row.created_at ? String(row.created_at) : new Date().toISOString(),
+          updated_at: row.updated_at ? String(row.updated_at) : new Date().toISOString()
         };
       });
       if (syncedRooms.length > 0) {
@@ -229,21 +255,21 @@ async function syncWithGoogleSheets() {
 
     if (sarprasData.length > 0) {
       const syncedSarpras: Sarpras[] = sarprasData.map((row: any, index: number) => ({
-        id: row.id || `SRP-${String(index + 1).padStart(3, '0')}`,
-        room_id: row.room_id || 'ROOM-001',
-        nama_barang: row.nama_barang || `Barang ${index + 1}`,
-        kategori: row.kategori || 'Fasilitas',
-        merk: row.merk || '-',
-        spesifikasi: row.spesifikasi || '-',
+        id: String(row.id || `SRP-${String(index + 1).padStart(3, '0')}`).trim(),
+        room_id: String(row.room_id || 'ROOM-001').trim(),
+        nama_barang: String(row.nama_barang || `Barang ${index + 1}`).trim(),
+        kategori: String(row.kategori || 'Fasilitas').trim(),
+        merk: String(row.merk || '-').trim(),
+        spesifikasi: String(row.spesifikasi || '-').trim(),
         jumlah: Number(row.jumlah) || 1,
-        satuan: row.satuan || 'Unit',
-        kondisi: row.kondisi || 'Baik',
-        tahun_pengadaan: row.tahun_pengadaan || '2023',
-        sumber_dana: row.sumber_dana || 'BOS',
-        keterangan: row.keterangan || '',
-        foto: row.foto || '',
-        created_at: row.created_at || new Date().toISOString(),
-        updated_at: row.updated_at || new Date().toISOString()
+        satuan: String(row.satuan || 'Unit').trim(),
+        kondisi: (String(row.kondisi || 'Baik').trim()) as Sarpras['kondisi'],
+        tahun_pengadaan: String(row.tahun_pengadaan || '2023').trim(),
+        sumber_dana: String(row.sumber_dana || 'BOS').trim(),
+        keterangan: String(row.keterangan || '').trim(),
+        foto: String(row.foto || '').trim(),
+        created_at: row.created_at ? String(row.created_at) : new Date().toISOString(),
+        updated_at: row.updated_at ? String(row.updated_at) : new Date().toISOString()
       }));
       if (syncedSarpras.length > 0) {
         store.sarpras = syncedSarpras;
@@ -273,8 +299,8 @@ async function syncWithGoogleSheets() {
           username: getVal(['username', 'user']) || `admin${index + 1}`,
           email: getVal(['email', 'mail']) || `admin${index + 1}@smkn1batumandi.sch.id`,
           password_hash: ensureHashedPassword(passVal || '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'),
-          role: getVal(['role', 'jabatan']) || 'Petugas Sarpras',
-          status: getVal(['status']) || 'Aktif',
+          role: (getVal(['role', 'jabatan']) || 'Petugas Sarpras') as AdminUser['role'],
+          status: (getVal(['status']) || 'Aktif') as AdminUser['status'],
           created_at: getVal(['created_at', 'createdat']) || new Date().toISOString(),
           updated_at: getVal(['updated_at', 'updatedat']) || new Date().toISOString()
         };
@@ -287,7 +313,7 @@ async function syncWithGoogleSheets() {
 
     // Try fetching SETTINGS sheet from Google Sheets
     try {
-      const settingsData = await fetchSheetCSV('SETTINGS');
+      const settingsData = await fetchSheetData('SETTINGS');
       if (settingsData.length > 0) {
         const firstRow = settingsData[0];
         const newSettings = { ...DEFAULT_APP_SETTINGS };
@@ -317,6 +343,7 @@ syncWithGoogleSheets();
 
 export const app = express();
 app.use(express.json({ limit: '10mb' }));
+
 app.use((req: Request, res: Response, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
@@ -324,13 +351,25 @@ app.use((req: Request, res: Response, next) => {
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
+
+  // Handle Vercel serverless URL rewrite path query
+  if (req.query && req.query.path) {
+    const rawPath = Array.isArray(req.query.path) ? req.query.path.join('/') : String(req.query.path);
+    const cleanPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+    req.url = cleanPath;
+  } else if (req.originalUrl && req.originalUrl.includes('/api/')) {
+    const sub = req.originalUrl.substring(req.originalUrl.indexOf('/api/') + 4);
+    req.url = sub.startsWith('/') ? sub : `/${sub}`;
+  }
+
   next();
 });
 
-// --- API ROUTES REGISTERED SYNCHRONOUSLY ---
+// --- API ROUTER FOR UNIVERSAL COMPATIBILITY (Vercel Serverless & Local Dev) ---
+const apiRouter = express.Router();
 
 // Health check
-app.get('/api/health', (req: Request, res: Response) => {
+apiRouter.get('/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     spreadsheetId: SPREADSHEET_ID,
@@ -341,7 +380,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // Get App Settings
-app.get('/api/settings', (req: Request, res: Response) => {
+apiRouter.get('/settings', (req: Request, res: Response) => {
   res.json({
     success: true,
     data: store.settings || DEFAULT_APP_SETTINGS
@@ -349,7 +388,7 @@ app.get('/api/settings', (req: Request, res: Response) => {
 });
 
 // Update App Settings
-app.post('/api/settings', (req: Request, res: Response) => {
+apiRouter.post('/settings', (req: Request, res: Response) => {
   const updatedSettings = {
     ...DEFAULT_APP_SETTINGS,
     ...(store.settings || {}),
@@ -366,7 +405,7 @@ app.post('/api/settings', (req: Request, res: Response) => {
 });
 
 // Get Stats
-app.get('/api/stats', (req: Request, res: Response) => {
+apiRouter.get('/stats', (req: Request, res: Response) => {
   const totalItemsCount = store.sarpras.reduce((sum, item) => sum + item.jumlah, 0);
   const baikCount = store.sarpras.filter(s => s.kondisi === 'Baik').reduce((sum, i) => sum + i.jumlah, 0);
   const rusakRinganCount = store.sarpras.filter(s => s.kondisi === 'Rusak Ringan').reduce((sum, i) => sum + i.jumlah, 0);
@@ -389,7 +428,7 @@ app.get('/api/stats', (req: Request, res: Response) => {
 });
 
 // Get All Rooms
-app.get('/api/rooms', (req: Request, res: Response) => {
+apiRouter.get('/rooms', (req: Request, res: Response) => {
   res.json({
     success: true,
     data: store.rooms,
@@ -399,7 +438,7 @@ app.get('/api/rooms', (req: Request, res: Response) => {
 });
 
 // Get Room by ID
-app.get('/api/rooms/:id', (req: Request, res: Response) => {
+apiRouter.get('/rooms/:id', (req: Request, res: Response) => {
   const room = store.rooms.find(r => r.id === req.params.id);
   if (!room) {
     return res.status(404).json({ success: false, message: 'Ruangan tidak ditemukan' });
@@ -415,7 +454,7 @@ app.get('/api/rooms/:id', (req: Request, res: Response) => {
 });
 
 // Create Room
-app.post('/api/rooms', (req: Request, res: Response) => {
+apiRouter.post('/rooms', (req: Request, res: Response) => {
   const newRoom: Room = {
     id: req.body.id || `ROOM-${String(store.rooms.length + 1).padStart(3, '0')}`,
     kode_ruangan: req.body.kode_ruangan || `R-${store.rooms.length + 1}`,
@@ -438,7 +477,7 @@ app.post('/api/rooms', (req: Request, res: Response) => {
 });
 
 // Update Room
-app.put('/api/rooms/:id', (req: Request, res: Response) => {
+apiRouter.put('/rooms/:id', (req: Request, res: Response) => {
   const index = store.rooms.findIndex(r => r.id === req.params.id);
   if (index === -1) {
     return res.status(404).json({ success: false, message: 'Ruangan tidak ditemukan' });
@@ -456,7 +495,7 @@ app.put('/api/rooms/:id', (req: Request, res: Response) => {
 });
 
 // Delete Room
-app.delete('/api/rooms/:id', (req: Request, res: Response) => {
+apiRouter.delete('/rooms/:id', (req: Request, res: Response) => {
   const roomId = req.params.id;
   store.rooms = store.rooms.filter(r => r.id !== roomId);
   // Also remove or unlink sarpras for this room
@@ -467,7 +506,7 @@ app.delete('/api/rooms/:id', (req: Request, res: Response) => {
 });
 
 // Bulk update room positions for Siteplan Editor
-app.post('/api/siteplan/update-positions', (req: Request, res: Response) => {
+apiRouter.post('/siteplan/update-positions', (req: Request, res: Response) => {
   const { positions } = req.body; // Array of { id, posisi_siteplan }
   if (Array.isArray(positions)) {
     positions.forEach(p => {
@@ -484,7 +523,7 @@ app.post('/api/siteplan/update-positions', (req: Request, res: Response) => {
 });
 
 // Get All Sarpras
-app.get('/api/sarpras', (req: Request, res: Response) => {
+apiRouter.get('/sarpras', (req: Request, res: Response) => {
   const roomId = req.query.room_id as string;
   let list = store.sarpras;
   if (roomId) {
@@ -494,7 +533,7 @@ app.get('/api/sarpras', (req: Request, res: Response) => {
 });
 
 // Get Sarpras Item by ID
-app.get('/api/sarpras/:id', (req: Request, res: Response) => {
+apiRouter.get('/sarpras/:id', (req: Request, res: Response) => {
   const item = store.sarpras.find(s => s.id === req.params.id);
   if (!item) {
     return res.status(404).json({ success: false, message: 'Barang sarpras tidak ditemukan' });
@@ -503,7 +542,7 @@ app.get('/api/sarpras/:id', (req: Request, res: Response) => {
 });
 
 // Create Sarpras
-app.post('/api/sarpras', (req: Request, res: Response) => {
+apiRouter.post('/sarpras', (req: Request, res: Response) => {
   const newItem: Sarpras = {
     id: req.body.id || `SRP-${String(store.sarpras.length + 1).padStart(3, '0')}`,
     room_id: req.body.room_id || store.rooms[0]?.id || 'ROOM-001',
@@ -529,7 +568,7 @@ app.post('/api/sarpras', (req: Request, res: Response) => {
 });
 
 // Update Sarpras
-app.put('/api/sarpras/:id', (req: Request, res: Response) => {
+apiRouter.put('/sarpras/:id', (req: Request, res: Response) => {
   const index = store.sarpras.findIndex(s => s.id === req.params.id);
   if (index === -1) {
     return res.status(404).json({ success: false, message: 'Barang sarpras tidak ditemukan' });
@@ -547,7 +586,7 @@ app.put('/api/sarpras/:id', (req: Request, res: Response) => {
 });
 
 // Delete Sarpras
-app.delete('/api/sarpras/:id', (req: Request, res: Response) => {
+apiRouter.delete('/sarpras/:id', (req: Request, res: Response) => {
   store.sarpras = store.sarpras.filter(s => s.id !== req.params.id);
   saveStore(store);
   sendToAppsScript('SARPRAS', 'DELETE', null, req.params.id);
@@ -555,7 +594,7 @@ app.delete('/api/sarpras/:id', (req: Request, res: Response) => {
 });
 
 // Admin Authentication Endpoint against Spreadsheet Database
-app.post('/api/auth/login', async (req: Request, res: Response) => {
+apiRouter.post('/auth/login', async (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ success: false, message: 'Email administrator dan password wajib diisi.' });
@@ -623,12 +662,12 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 });
 
 // Get All Admins
-app.get('/api/admins', (req: Request, res: Response) => {
+apiRouter.get('/admins', (req: Request, res: Response) => {
   res.json({ success: true, data: store.admins });
 });
 
 // Create Admin User
-app.post('/api/admins', (req: Request, res: Response) => {
+apiRouter.post('/admins', (req: Request, res: Response) => {
   const rawPass = req.body.password_hash || req.body.password || 'admin123';
   const newAdmin: AdminUser = {
     id: req.body.id || `ADM-${String(store.admins.length + 1).padStart(3, '0')}`,
@@ -649,7 +688,7 @@ app.post('/api/admins', (req: Request, res: Response) => {
 });
 
 // Update Admin User
-app.put('/api/admins/:id', (req: Request, res: Response) => {
+apiRouter.put('/admins/:id', (req: Request, res: Response) => {
   const index = store.admins.findIndex(a => a.id === req.params.id);
   if (index === -1) {
     return res.status(404).json({ success: false, message: 'User admin tidak ditemukan' });
@@ -675,7 +714,7 @@ app.put('/api/admins/:id', (req: Request, res: Response) => {
 });
 
 // Delete Admin User
-app.delete('/api/admins/:id', (req: Request, res: Response) => {
+apiRouter.delete('/admins/:id', (req: Request, res: Response) => {
   store.admins = store.admins.filter(a => a.id !== req.params.id);
   saveStore(store);
   sendToAppsScript('ADMINS', 'DELETE', null, req.params.id);
@@ -683,7 +722,7 @@ app.delete('/api/admins/:id', (req: Request, res: Response) => {
 });
 
 // Push All Initial Data (ROOMS, SARPRAS, ADMINS, SETTINGS) to Google Apps Script
-app.post('/api/sheets/push-all', async (req: Request, res: Response) => {
+apiRouter.post('/sheets/push-all', async (req: Request, res: Response) => {
   try {
     // Sync Settings
     if (store.settings) {
@@ -714,7 +753,7 @@ app.post('/api/sheets/push-all', async (req: Request, res: Response) => {
 });
 
 // Trigger Refresh / Sync from Google Sheets
-app.get('/api/sheets/sync', async (req: Request, res: Response) => {
+apiRouter.get('/sheets/sync', async (req: Request, res: Response) => {
   await syncWithGoogleSheets();
   res.json({
     success: true,
@@ -744,7 +783,7 @@ function arrayToCSV(arr: Record<string, any>[]): string {
 }
 
 // Export CSV endpoint (for admin downloading latest format or syncing to Google Sheets)
-app.get('/api/sheets/export-csv/:sheetName', (req: Request, res: Response) => {
+apiRouter.get('/sheets/export-csv/:sheetName', (req: Request, res: Response) => {
   const sheetName = req.params.sheetName.toUpperCase();
   let csvData = '';
 
@@ -764,6 +803,10 @@ app.get('/api/sheets/export-csv/:sheetName', (req: Request, res: Response) => {
   res.setHeader('Content-Disposition', `attachment; filename="SMKN1_Batumandi_${sheetName}.csv"`);
   res.send(csvData);
 });
+
+// Mount router on BOTH '/api' and '/' for maximum reliability
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 async function startServer() {
   const PORT = 3000;

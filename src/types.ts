@@ -66,6 +66,13 @@ export interface AdminUser {
   updated_at?: string;
 }
 
+export interface AdminSession {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: 'Super Admin' | 'Petugas Sarpras' | 'Viewer';
+}
+
 export interface StatsSummary {
   totalRooms: number;
   totalSarpras: number;

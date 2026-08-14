@@ -41,6 +41,17 @@ export function setStoredAdminSession(session: AdminSession | null) {
   }
 }
 
+async function sha256Browser(message: string): Promise<string> {
+  try {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    return message;
+  }
+}
+
 export async function loginAdmin(email: string, pass: string): Promise<AdminSession> {
   const cleanEmail = email.trim().toLowerCase();
   const cleanPass = pass.trim();
@@ -57,18 +68,66 @@ export async function loginAdmin(email: string, pass: string): Promise<AdminSess
     if (res.ok && json.success && json.session) {
       setStoredAdminSession(json.session);
       return json.session;
-    } else if (json.message) {
+    } else if (json.message && !json.message.includes('<!DOCTYPE') && !json.message.includes('404')) {
       throw new Error(json.message);
     }
   } catch (err: any) {
     // If the server explicitly returned an auth error (e.g. wrong password or email not found), throw it
-    if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch')) {
+    if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch') && !err.message.includes('<!DOCTYPE') && !err.message.includes('JSON')) {
       throw err;
     }
-    console.warn('Server auth fetch issue, falling back to local checks:', err?.message);
+    console.warn('Server auth fetch issue, falling back to direct sheet/local checks:', err?.message);
   }
 
-  // 2. Check if real Firebase auth is configured
+  // 2. Direct check against Google Apps Script Web App (sheet=ADMINS)
+  try {
+    const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzi4ytGLJtfbDEQqLA-m5MnOTqJsKP5Aj2ALuZyMPhphUPz45o4d1FqvsoeQZt5QC36KA/exec?sheet=ADMINS';
+    const res = await fetch(appsScriptUrl);
+    if (res.ok) {
+      const text = await res.text();
+      const trimmed = text.trim();
+      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        const admins = JSON.parse(trimmed);
+        if (Array.isArray(admins)) {
+          const hashedInput = await sha256Browser(cleanPass);
+          const found = admins.find((a: any) => {
+            const aEmail = String(a.email || '').trim().toLowerCase();
+            const aUser = String(a.username || '').trim().toLowerCase();
+            return aEmail === cleanEmail || aUser === cleanEmail;
+          });
+
+          if (found) {
+            const storedPass = String(found.password_hash || found.password || '').trim();
+            const isValid = 
+              storedPass === cleanPass || 
+              storedPass.toLowerCase() === cleanPass.toLowerCase() ||
+              storedPass === hashedInput ||
+              storedPass.toLowerCase() === hashedInput.toLowerCase();
+
+            if (isValid) {
+              const session: AdminSession = {
+                uid: found.id || `ADM-${Date.now()}`,
+                email: found.email || `${cleanEmail}@smkn1batumandi.sch.id`,
+                displayName: found.nama || found.username || 'Admin Sarpras',
+                role: found.role || 'Petugas Sarpras'
+              };
+              setStoredAdminSession(session);
+              return session;
+            } else {
+              throw new Error('Password yang Anda masukkan salah. Periksa kembali password administrator Anda.');
+            }
+          }
+        }
+      }
+    }
+  } catch (err: any) {
+    if (err.message && err.message.includes('Password yang Anda masukkan salah')) {
+      throw err;
+    }
+    console.warn('Direct Apps Script auth check notice:', err?.message);
+  }
+
+  // 3. Check if real Firebase auth is configured
   if (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY !== 'demo-api-key') {
     try {
       const res = await signInWithEmailAndPassword(auth, email, pass);
@@ -85,7 +144,7 @@ export async function loginAdmin(email: string, pass: string): Promise<AdminSess
     }
   }
 
-  // 3. Check custom created or reset admins from localStorage if offline
+  // 4. Check custom created or reset admins from localStorage if offline
   const savedAdminsStr = localStorage.getItem('smk_custom_admins_store');
   if (savedAdminsStr) {
     try {
