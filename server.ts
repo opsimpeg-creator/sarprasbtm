@@ -223,7 +223,11 @@ async function syncWithGoogleSheets() {
     let updated = false;
 
     if (roomsData.length > 0) {
-      const syncedRooms: Room[] = roomsData.map((row: any, index: number) => {
+      const seenIds = new Set<string>();
+      const seenKeys = new Set<string>();
+      const syncedRooms: Room[] = [];
+
+      roomsData.forEach((row: any, index: number) => {
         let pos = { x: 100, y: 100, width: 120, height: 80, color: '#2563eb' };
         try {
           if (row.posisi_siteplan) {
@@ -233,10 +237,23 @@ async function syncWithGoogleSheets() {
           // fallback
         }
 
-        return {
-          id: String(row.id || `ROOM-${String(index + 1).padStart(3, '0')}`).trim(),
-          kode_ruangan: String(row.kode_ruangan || `R-${index + 1}`).trim(),
-          nama_ruangan: String(row.nama_ruangan || `Ruangan ${index + 1}`).trim(),
+        let id = String(row.id || `ROOM-${String(index + 1).padStart(3, '0')}`).trim();
+        const kode = String(row.kode_ruangan || `R-${index + 1}`).trim();
+        const nama = String(row.nama_ruangan || `Ruangan ${index + 1}`).trim();
+
+        const exactKey = `${id}__${kode}__${nama}`.toLowerCase();
+        if (seenKeys.has(exactKey)) return;
+        seenKeys.add(exactKey);
+
+        if (seenIds.has(id)) {
+          id = `${id}_${index + 1}`;
+        }
+        seenIds.add(id);
+
+        syncedRooms.push({
+          id,
+          kode_ruangan: kode,
+          nama_ruangan: nama,
           jenis_ruangan: (String(row.jenis_ruangan || 'Ruang Kelas').trim()) as JenisRuangan,
           lantai: Number(row.lantai) || 1,
           posisi_siteplan: pos,
@@ -245,8 +262,9 @@ async function syncWithGoogleSheets() {
           status: (String(row.status || 'Aktif').trim()) as Room['status'],
           created_at: row.created_at ? String(row.created_at) : new Date().toISOString(),
           updated_at: row.updated_at ? String(row.updated_at) : new Date().toISOString()
-        };
+        });
       });
+
       if (syncedRooms.length > 0) {
         store.rooms = syncedRooms;
         updated = true;
@@ -254,23 +272,43 @@ async function syncWithGoogleSheets() {
     }
 
     if (sarprasData.length > 0) {
-      const syncedSarpras: Sarpras[] = sarprasData.map((row: any, index: number) => ({
-        id: String(row.id || `SRP-${String(index + 1).padStart(3, '0')}`).trim(),
-        room_id: String(row.room_id || 'ROOM-001').trim(),
-        nama_barang: String(row.nama_barang || `Barang ${index + 1}`).trim(),
-        kategori: String(row.kategori || 'Fasilitas').trim(),
-        merk: String(row.merk || '-').trim(),
-        spesifikasi: String(row.spesifikasi || '-').trim(),
-        jumlah: Number(row.jumlah) || 1,
-        satuan: String(row.satuan || 'Unit').trim(),
-        kondisi: (String(row.kondisi || 'Baik').trim()) as Sarpras['kondisi'],
-        tahun_pengadaan: String(row.tahun_pengadaan || '2023').trim(),
-        sumber_dana: String(row.sumber_dana || 'BOS').trim(),
-        keterangan: String(row.keterangan || '').trim(),
-        foto: String(row.foto || '').trim(),
-        created_at: row.created_at ? String(row.created_at) : new Date().toISOString(),
-        updated_at: row.updated_at ? String(row.updated_at) : new Date().toISOString()
-      }));
+      const seenIds = new Set<string>();
+      const seenKeys = new Set<string>();
+      const syncedSarpras: Sarpras[] = [];
+
+      sarprasData.forEach((row: any, index: number) => {
+        let id = String(row.id || `SRP-${String(index + 1).padStart(3, '0')}`).trim();
+        const roomId = String(row.room_id || 'ROOM-001').trim();
+        const nama = String(row.nama_barang || `Barang ${index + 1}`).trim();
+
+        const exactKey = `${id}__${nama}__${roomId}`.toLowerCase();
+        if (seenKeys.has(exactKey)) return;
+        seenKeys.add(exactKey);
+
+        if (seenIds.has(id)) {
+          id = `${id}_${index + 1}`;
+        }
+        seenIds.add(id);
+
+        syncedSarpras.push({
+          id,
+          room_id: roomId,
+          nama_barang: nama,
+          kategori: String(row.kategori || 'Fasilitas').trim(),
+          merk: String(row.merk || '-').trim(),
+          spesifikasi: String(row.spesifikasi || '-').trim(),
+          jumlah: Number(row.jumlah) || 1,
+          satuan: String(row.satuan || 'Unit').trim(),
+          kondisi: (String(row.kondisi || 'Baik').trim()) as Sarpras['kondisi'],
+          tahun_pengadaan: String(row.tahun_pengadaan || '2023').trim(),
+          sumber_dana: String(row.sumber_dana || 'BOS').trim(),
+          keterangan: String(row.keterangan || '').trim(),
+          foto: String(row.foto || '').trim(),
+          created_at: row.created_at ? String(row.created_at) : new Date().toISOString(),
+          updated_at: row.updated_at ? String(row.updated_at) : new Date().toISOString()
+        });
+      });
+
       if (syncedSarpras.length > 0) {
         store.sarpras = syncedSarpras;
         updated = true;
@@ -278,7 +316,11 @@ async function syncWithGoogleSheets() {
     }
 
     if (adminsData.length > 0) {
-      const syncedAdmins: AdminUser[] = adminsData.map((row: any, index: number) => {
+      const seenIds = new Set<string>();
+      const seenUsernames = new Set<string>();
+      const syncedAdmins: AdminUser[] = [];
+
+      adminsData.forEach((row: any, index: number) => {
         const getVal = (keys: string[]) => {
           for (const key of Object.keys(row)) {
             const cleanKey = key.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -291,20 +333,31 @@ async function syncWithGoogleSheets() {
           return '';
         };
 
+        const username = getVal(['username', 'user']) || `admin${index + 1}`;
+        if (seenUsernames.has(username.toLowerCase())) return;
+        seenUsernames.add(username.toLowerCase());
+
+        let id = getVal(['id']) || `ADM-${String(index + 1).padStart(3, '0')}`;
+        if (seenIds.has(id)) {
+          id = `${id}_${index + 1}`;
+        }
+        seenIds.add(id);
+
         const passVal = getVal(['password_hash', 'password', 'pass', 'passwordhash', 'katasandi', 'password_']);
 
-        return {
-          id: getVal(['id']) || `ADM-${String(index + 1).padStart(3, '0')}`,
+        syncedAdmins.push({
+          id,
           nama: getVal(['nama', 'name', 'nama_lengkap']) || `Admin ${index + 1}`,
-          username: getVal(['username', 'user']) || `admin${index + 1}`,
+          username,
           email: getVal(['email', 'mail']) || `admin${index + 1}@smkn1batumandi.sch.id`,
           password_hash: ensureHashedPassword(passVal || '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'),
           role: (getVal(['role', 'jabatan']) || 'Petugas Sarpras') as AdminUser['role'],
           status: (getVal(['status']) || 'Aktif') as AdminUser['status'],
           created_at: getVal(['created_at', 'createdat']) || new Date().toISOString(),
           updated_at: getVal(['updated_at', 'updatedat']) || new Date().toISOString()
-        };
+        });
       });
+
       if (syncedAdmins.length > 0) {
         store.admins = syncedAdmins;
         updated = true;

@@ -148,6 +148,101 @@ export async function saveAppSettings(settings: AppSettings): Promise<AppSetting
   return settings;
 }
 
+// --- Data Deduplication Helpers ---
+export function deduplicateRooms(rooms: Room[]): Room[] {
+  const seenIds = new Set<string>();
+  const seenKeys = new Set<string>();
+  const result: Room[] = [];
+
+  for (let i = 0; i < rooms.length; i++) {
+    const r = rooms[i];
+    if (!r) continue;
+    let id = String(r.id || '').trim();
+    if (!id) id = `ROOM-${String(i + 1).padStart(3, '0')}`;
+    
+    // Check if it's an exact duplicate of a room already added
+    const exactKey = `${id}__${r.kode_ruangan || ''}__${r.nama_ruangan || ''}`.toLowerCase();
+    if (seenKeys.has(exactKey)) {
+      continue;
+    }
+    seenKeys.add(exactKey);
+
+    if (seenIds.has(id)) {
+      id = `${id}_${i + 1}`;
+    }
+    seenIds.add(id);
+
+    result.push({
+      ...r,
+      id
+    });
+  }
+
+  return result;
+}
+
+export function deduplicateSarpras(sarpras: Sarpras[]): Sarpras[] {
+  const seenIds = new Set<string>();
+  const seenKeys = new Set<string>();
+  const result: Sarpras[] = [];
+
+  for (let i = 0; i < sarpras.length; i++) {
+    const s = sarpras[i];
+    if (!s) continue;
+    let id = String(s.id || '').trim();
+    if (!id) id = `SRP-${String(i + 1).padStart(3, '0')}`;
+
+    const exactKey = `${id}__${s.nama_barang || ''}__${s.room_id || ''}`.toLowerCase();
+    if (seenKeys.has(exactKey)) {
+      continue;
+    }
+    seenKeys.add(exactKey);
+
+    if (seenIds.has(id)) {
+      id = `${id}_${i + 1}`;
+    }
+    seenIds.add(id);
+
+    result.push({
+      ...s,
+      id
+    });
+  }
+
+  return result;
+}
+
+export function deduplicateAdmins(admins: AdminUser[]): AdminUser[] {
+  const seenIds = new Set<string>();
+  const seenUsernames = new Set<string>();
+  const result: AdminUser[] = [];
+
+  for (let i = 0; i < admins.length; i++) {
+    const a = admins[i];
+    if (!a) continue;
+    let id = String(a.id || '').trim();
+    if (!id) id = `ADM-${String(i + 1).padStart(3, '0')}`;
+
+    const username = String(a.username || '').toLowerCase().trim();
+    if (username && seenUsernames.has(username)) {
+      continue;
+    }
+    if (username) seenUsernames.add(username);
+
+    if (seenIds.has(id)) {
+      id = `${id}_${i + 1}`;
+    }
+    seenIds.add(id);
+
+    result.push({
+      ...a,
+      id
+    });
+  }
+
+  return result;
+}
+
 export async function getRooms(): Promise<Room[]> {
   // 1. Try Express API
   try {
@@ -155,8 +250,9 @@ export async function getRooms(): Promise<Room[]> {
     if (res.ok) {
       const json = await res.json();
       if (Array.isArray(json.data) && json.data.length > 0) {
-        localStorage.setItem('smk_cached_rooms', JSON.stringify(json.data));
-        return json.data;
+        const cleanRooms = deduplicateRooms(json.data);
+        localStorage.setItem('smk_cached_rooms', JSON.stringify(cleanRooms));
+        return cleanRooms;
       }
     }
   } catch (err) {
@@ -189,8 +285,9 @@ export async function getRooms(): Promise<Room[]> {
           updated_at: row.updated_at ? String(row.updated_at) : new Date().toISOString()
         };
       });
-      localStorage.setItem('smk_cached_rooms', JSON.stringify(parsedRooms));
-      return parsedRooms;
+      const cleanRooms = deduplicateRooms(parsedRooms);
+      localStorage.setItem('smk_cached_rooms', JSON.stringify(cleanRooms));
+      return cleanRooms;
     }
   } catch (err) {
     console.warn('Direct sheet fetch for ROOMS notice:', err);
@@ -201,11 +298,11 @@ export async function getRooms(): Promise<Room[]> {
   if (cached) {
     try {
       const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) return deduplicateRooms(parsed);
     } catch (e) {}
   }
 
-  return INITIAL_ROOMS;
+  return deduplicateRooms(INITIAL_ROOMS);
 }
 
 export async function getRoomById(id: string): Promise<Room & { sarpras_list: Sarpras[] }> {
@@ -233,10 +330,11 @@ export async function getAllSarpras(roomId?: string): Promise<Sarpras[]> {
     if (res.ok) {
       const json = await res.json();
       if (Array.isArray(json.data) && json.data.length > 0) {
+        const cleanSarpras = deduplicateSarpras(json.data);
         if (!roomId) {
-          localStorage.setItem('smk_cached_sarpras', JSON.stringify(json.data));
+          localStorage.setItem('smk_cached_sarpras', JSON.stringify(cleanSarpras));
         }
-        return json.data;
+        return roomId ? cleanSarpras.filter(s => s.room_id === roomId) : cleanSarpras;
       }
     }
   } catch (err) {
@@ -265,8 +363,9 @@ export async function getAllSarpras(roomId?: string): Promise<Sarpras[]> {
         updated_at: row.updated_at ? String(row.updated_at) : new Date().toISOString()
       }));
 
-      localStorage.setItem('smk_cached_sarpras', JSON.stringify(parsedSarpras));
-      return roomId ? parsedSarpras.filter(s => s.room_id === roomId) : parsedSarpras;
+      const cleanSarpras = deduplicateSarpras(parsedSarpras);
+      localStorage.setItem('smk_cached_sarpras', JSON.stringify(cleanSarpras));
+      return roomId ? cleanSarpras.filter(s => s.room_id === roomId) : cleanSarpras;
     }
   } catch (err) {
     console.warn('Direct sheet fetch for SARPRAS notice:', err);
@@ -278,12 +377,14 @@ export async function getAllSarpras(roomId?: string): Promise<Sarpras[]> {
     try {
       const parsed = JSON.parse(cached);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return roomId ? parsed.filter(s => s.room_id === roomId) : parsed;
+        const clean = deduplicateSarpras(parsed);
+        return roomId ? clean.filter(s => s.room_id === roomId) : clean;
       }
     } catch (e) {}
   }
 
-  return roomId ? INITIAL_SARPRAS.filter(s => s.room_id === roomId) : INITIAL_SARPRAS;
+  const initialClean = deduplicateSarpras(INITIAL_SARPRAS);
+  return roomId ? initialClean.filter(s => s.room_id === roomId) : initialClean;
 }
 
 export async function getStats(): Promise<StatsSummary> {
@@ -490,7 +591,7 @@ export async function getAdmins(): Promise<AdminUser[]> {
     if (res.ok) {
       const json = await res.json();
       if (Array.isArray(json.data) && json.data.length > 0) {
-        return json.data;
+        return deduplicateAdmins(json.data);
       }
     }
   } catch (e) {
@@ -500,7 +601,7 @@ export async function getAdmins(): Promise<AdminUser[]> {
   try {
     const directAdmins = await fetchDirectSheetData('ADMINS');
     if (directAdmins.length > 0) {
-      return directAdmins.map((a: any, idx: number) => ({
+      const parsedAdmins: AdminUser[] = directAdmins.map((a: any, idx: number) => ({
         id: a.id || `ADM-${idx + 1}`,
         nama: a.nama || `Admin ${idx + 1}`,
         username: a.username || `admin${idx + 1}`,
@@ -511,10 +612,11 @@ export async function getAdmins(): Promise<AdminUser[]> {
         created_at: a.created_at || new Date().toISOString(),
         updated_at: a.updated_at || new Date().toISOString()
       }));
+      return deduplicateAdmins(parsedAdmins);
     }
   } catch (e) {}
 
-  return INITIAL_ADMINS;
+  return deduplicateAdmins(INITIAL_ADMINS);
 }
 
 export async function createAdmin(admin: Partial<AdminUser>): Promise<AdminUser> {

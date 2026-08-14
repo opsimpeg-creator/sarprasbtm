@@ -205,10 +205,10 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({ room, sarprasL
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
-                  {filteredSarpras.map((item) => {
+                  {filteredSarpras.map((item, index) => {
                     const badge = KONDISI_BADGES[item.kondisi] || KONDISI_BADGES['Baik'];
                     return (
-                      <tr key={item.id} className="hover:bg-indigo-50/40 transition-colors">
+                      <tr key={`modal-srp-row-${item.id || 's'}-${index}`} className="hover:bg-indigo-50/40 transition-colors">
                         <td className="p-3">
                           <div className="font-bold text-slate-900 text-xs">{item.nama_barang}</div>
                           {item.keterangan && (

@@ -220,7 +220,7 @@ export const InteractiveSiteplan: React.FC<InteractiveSiteplanProps> = ({
             })}
 
             {/* Interactive Room Shapes */}
-            {rooms.map((room) => {
+            {rooms.map((room, index) => {
               const pos = room.posisi_siteplan || { x: 100, y: 100, width: 100, height: 70 };
               const isSelected = selectedRoom?.id === room.id;
               const isHovered = hoveredRoom?.id === room.id;
@@ -230,7 +230,7 @@ export const InteractiveSiteplan: React.FC<InteractiveSiteplanProps> = ({
 
               return (
                 <g
-                  key={room.id}
+                  key={`siteplan-room-${room.id || 'r'}-${index}`}
                   onClick={() => onSelectRoom(room)}
                   onMouseEnter={() => setHoveredRoom(room)}
                   onMouseLeave={() => setHoveredRoom(null)}
@@ -415,14 +415,14 @@ export const InteractiveSiteplan: React.FC<InteractiveSiteplanProps> = ({
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(showAllRooms ? filteredRooms : filteredRooms.slice(0, 6)).map((room) => {
+              {(showAllRooms ? filteredRooms : filteredRooms.slice(0, 6)).map((room, index) => {
                 const sarprasCount = sarprasMap[room.id] || 0;
                 const color = ROOM_TYPE_COLORS[room.jenis_ruangan] || '#2563eb';
                 const isSelected = selectedRoom?.id === room.id;
 
                 return (
                   <div
-                    key={room.id}
+                    key={`card-room-${room.id || 'r'}-${index}`}
                     onClick={() => onSelectRoom(room)}
                     className={`group bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
                       isSelected

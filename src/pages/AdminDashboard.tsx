@@ -861,8 +861,8 @@ function doPost(e) {
                       </td>
                     </tr>
                   ) : (
-                    paginatedRooms.map((room) => (
-                      <tr key={room.id} className="hover:bg-indigo-50/40 transition-colors">
+                    paginatedRooms.map((room, index) => (
+                      <tr key={`adm-room-row-${room.id || 'r'}-${index}`} className="hover:bg-indigo-50/40 transition-colors">
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-mono font-bold text-[10px] rounded border border-indigo-200">
@@ -1024,8 +1024,8 @@ function doPost(e) {
                   className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-indigo-600 shadow-sm"
                 >
                   <option value="Semua">Semua Ruangan</option>
-                  {rooms.map(r => (
-                    <option key={r.id} value={r.id}>{r.kode_ruangan} - {r.nama_ruangan}</option>
+                  {rooms.map((r, index) => (
+                    <option key={`adm-filt-r-${r.id || 'r'}-${index}`} value={r.id}>{r.kode_ruangan} - {r.nama_ruangan}</option>
                   ))}
                 </select>
 
@@ -1086,10 +1086,10 @@ function doPost(e) {
                       </td>
                     </tr>
                   ) : (
-                    paginatedSarpras.map((item) => {
+                    paginatedSarpras.map((item, index) => {
                       const roomObj = rooms.find(r => r.id === item.room_id);
                       return (
-                        <tr key={item.id} className="hover:bg-indigo-50/40 transition-colors">
+                        <tr key={`adm-srp-row-${item.id || 's'}-${index}`} className="hover:bg-indigo-50/40 transition-colors">
                           <td className="p-3">
                             <div className="font-bold text-slate-900">{item.nama_barang}</div>
                             <div className="text-[11px] text-slate-500 max-w-xs truncate">{item.spesifikasi || '-'}</div>

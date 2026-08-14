@@ -124,8 +124,8 @@ export const SarprasFormModal: React.FC<SarprasFormModalProps> = ({
               onChange={(e) => setRoomId(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 font-semibold focus:outline-none focus:border-indigo-600"
             >
-              {rooms.map((r) => (
-                <option key={r.id} value={r.id}>
+              {rooms.map((r, index) => (
+                <option key={`modal-room-opt-${r.id || 'r'}-${index}`} value={r.id}>
                   {r.kode_ruangan} - {r.nama_ruangan} ({r.jenis_ruangan})
                 </option>
               ))}

@@ -522,7 +522,7 @@ export const SiteplanEditor: React.FC<SiteplanEditorProps> = ({ rooms, sarpras =
               )}
 
               {/* Render All Decoration Items (Roads, Flagpoles, Trees) */}
-              {decorations.map((item) => {
+              {decorations.map((item, index) => {
                 const isSelected = selectedKey === `DECOR:${item.id}`;
 
                 if (item.type === 'road_h') {
@@ -530,7 +530,7 @@ export const SiteplanEditor: React.FC<SiteplanEditorProps> = ({ rooms, sarpras =
                   const h = item.height || 15;
                   return (
                     <g
-                      key={item.id}
+                      key={`decor-h-${item.id || 'dh'}-${index}`}
                       onMouseDown={(e) => handleStartDrag({ type: 'decor', id: item.id }, e)}
                       onTouchStart={(e) => handleStartDrag({ type: 'decor', id: item.id }, e)}
                       className="cursor-grab active:cursor-grabbing"
@@ -560,7 +560,7 @@ export const SiteplanEditor: React.FC<SiteplanEditorProps> = ({ rooms, sarpras =
                   const h = item.height || 300;
                   return (
                     <g
-                      key={item.id}
+                      key={`decor-v-${item.id || 'dv'}-${index}`}
                       onMouseDown={(e) => handleStartDrag({ type: 'decor', id: item.id }, e)}
                       onTouchStart={(e) => handleStartDrag({ type: 'decor', id: item.id }, e)}
                       className="cursor-grab active:cursor-grabbing"
@@ -587,7 +587,7 @@ export const SiteplanEditor: React.FC<SiteplanEditorProps> = ({ rooms, sarpras =
                 if (item.type === 'flagpole') {
                   return (
                     <g
-                      key={item.id}
+                      key={`decor-flag-${item.id || 'fl'}-${index}`}
                       onMouseDown={(e) => handleStartDrag({ type: 'decor', id: item.id }, e)}
                       onTouchStart={(e) => handleStartDrag({ type: 'decor', id: item.id }, e)}
                       className="cursor-grab active:cursor-grabbing"
@@ -614,7 +614,7 @@ export const SiteplanEditor: React.FC<SiteplanEditorProps> = ({ rooms, sarpras =
                 if (item.type === 'tree') {
                   return (
                     <g
-                      key={item.id}
+                      key={`decor-tree-${item.id || 'tr'}-${index}`}
                       onMouseDown={(e) => handleStartDrag({ type: 'decor', id: item.id }, e)}
                       onTouchStart={(e) => handleStartDrag({ type: 'decor', id: item.id }, e)}
                       className="cursor-grab active:cursor-grabbing"
@@ -641,7 +641,7 @@ export const SiteplanEditor: React.FC<SiteplanEditorProps> = ({ rooms, sarpras =
               })}
 
               {/* Render Room Buildings */}
-              {rooms.map((room) => {
+              {rooms.map((room, index) => {
                 const pos = editedPositions[room.id] || room.posisi_siteplan || { x: 100, y: 100, width: 120, height: 80 };
                 const isSelected = selectedKey === room.id;
                 const isBeingDragged = draggedItem?.type === 'room' && draggedItem.id === room.id;
@@ -650,7 +650,7 @@ export const SiteplanEditor: React.FC<SiteplanEditorProps> = ({ rooms, sarpras =
 
                 return (
                   <g
-                    key={room.id}
+                    key={`editor-room-${room.id || 'r'}-${index}`}
                     onMouseDown={(e) => handleStartDrag({ type: 'room', id: room.id }, e)}
                     onTouchStart={(e) => handleStartDrag({ type: 'room', id: room.id }, e)}
                     className="cursor-grab active:cursor-grabbing transition-transform"
@@ -750,15 +750,15 @@ export const SiteplanEditor: React.FC<SiteplanEditorProps> = ({ rooms, sarpras =
               className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-indigo-600 shadow-sm"
             >
               <optgroup label="🏛️ Gedung & Ruangan Sekolah">
-                {rooms.map((r) => (
-                  <option key={r.id} value={r.id}>
+                {rooms.map((r, index) => (
+                  <option key={`opt-room-${r.id || 'r'}-${index}`} value={r.id}>
                     {r.kode_ruangan} - {r.nama_ruangan}
                   </option>
                 ))}
               </optgroup>
               <optgroup label="🛣️ Jalan, Tiang Bendera, & Taman">
-                {decorations.map((d) => (
-                  <option key={d.id} value={`DECOR:${d.id}`}>
+                {decorations.map((d, index) => (
+                  <option key={`opt-decor-${d.id || 'd'}-${index}`} value={`DECOR:${d.id}`}>
                     {d.name}
                   </option>
                 ))}
