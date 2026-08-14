@@ -15,7 +15,7 @@ Proyek ini telah dikonfigurasi agar dapat di-deploy secara langsung ke **Vercel*
    ```
 2. Buka Dashboard Vercel dan pilih proyek Anda (`sarprasbtm`).
 3. Masuk ke **Settings** -> **Environment Variables**, kemudian tambahkan variabel berikut:
-   - `GOOGLE_SHEETS_ID` : `1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0`
-   - `GOOGLE_APPS_SCRIPT_URL` : `https://script.google.com/macros/s/AKfycbzi4ytGLJtfbDEQqLA-m5MnOTqJsKP5Aj2ALuZyMPhphUPz45o4d1FqvsoeQZt5QC36KA/exec`
+   - `GOOGLE_SHEETS_ID` : Masukkan ID Google Spreadsheet database sarpras Anda
+   - `GOOGLE_APPS_SCRIPT_URL` : Masukkan URL deployment Web App Google Apps Script Anda
 4. Klik **Redeploy** di Vercel.
 5. Selesai! Semua endpoint API (`/api/rooms`, `/api/sarpras`, `/api/stats`, dll.) akan secara otomatis terhubung dan diproses oleh Vercel Serverless Function.

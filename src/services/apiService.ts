@@ -2,8 +2,8 @@ import { Room, Sarpras, StatsSummary, AdminUser, AppSettings, DEFAULT_APP_SETTIN
 import { INITIAL_ROOMS, INITIAL_SARPRAS, INITIAL_ADMINS } from '../data/initialData';
 
 const API_BASE = '/api';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzi4ytGLJtfbDEQqLA-m5MnOTqJsKP5Aj2ALuZyMPhphUPz45o4d1FqvsoeQZt5QC36KA/exec';
-const SPREADSHEET_ID = '1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0';
+const APPS_SCRIPT_URL = (import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || import.meta.env.VITE_APPS_SCRIPT_URL || '') as string;
+const SPREADSHEET_ID = (import.meta.env.VITE_GOOGLE_SHEETS_ID || import.meta.env.VITE_SPREADSHEET_ID || '') as string;
 
 // Direct client-side Apps Script sync helper (for high availability)
 async function sendDirectToAppsScript(sheet: string, action: string, data?: any, id?: string) {
