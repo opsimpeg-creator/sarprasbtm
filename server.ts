@@ -26,8 +26,21 @@ try {
   }
 } catch (e) {}
 
-const SPREADSHEET_ID = process.env.SARPRAS_SHEETS_ID || process.env.GOOGLE_SHEETS_ID || '';
-const APPS_SCRIPT_URL = process.env.SARPRAS_APPS_SCRIPT_URL || process.env.GOOGLE_APPS_SCRIPT_URL || '';
+const SPREADSHEET_ID = 
+  process.env.SARPRAS_SHEETS_ID || 
+  process.env.GOOGLE_SHEETS_ID || 
+  process.env.VITE_GOOGLE_SHEETS_ID || 
+  process.env.SPREADSHEET_ID || 
+  process.env.VITE_SPREADSHEET_ID || 
+  '';
+
+const APPS_SCRIPT_URL = 
+  process.env.SARPRAS_APPS_SCRIPT_URL || 
+  process.env.GOOGLE_APPS_SCRIPT_URL || 
+  process.env.VITE_GOOGLE_APPS_SCRIPT_URL || 
+  process.env.APPS_SCRIPT_URL || 
+  process.env.VITE_APPS_SCRIPT_URL || 
+  '';
 const DATA_FILE = process.env.VERCEL ? path.join('/tmp', 'data_store.json') : path.join(process.cwd(), 'data_store.json');
 
 function ensureHashedPassword(pass: string): string {

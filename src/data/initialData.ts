@@ -553,6 +553,17 @@ export const INITIAL_SARPRAS: Sarpras[] = [
 export const INITIAL_ADMINS: AdminUser[] = [
   {
     id: 'ADM-001',
+    nama: 'sabil',
+    username: 'sabil',
+    email: 'sabil@admin.com',
+    password_hash: 'ca071623a06d115da519a9e9069e7e635232854dd2d40e6984066f378d8952a0',
+    role: 'Super Admin',
+    status: 'Aktif',
+    created_at: '2026-08-12T03:28:35.523Z',
+    updated_at: '2026-08-12T03:56:14.318Z'
+  },
+  {
+    id: 'ADM-002',
     nama: 'Herman Syaufi',
     username: 'hermansyaufi96',
     email: 'hermansyaufi96@admin.smk.belajar.id',
@@ -564,7 +575,7 @@ export const INITIAL_ADMINS: AdminUser[] = [
     updated_at: '2026-08-01 10:30:00'
   },
   {
-    id: 'ADM-002',
+    id: 'ADM-003',
     nama: 'Petugas Sarpras SMKN 1 Batumandi',
     username: 'admin_sarpras',
     email: 'admin@smkn1batumandi.sch.id',

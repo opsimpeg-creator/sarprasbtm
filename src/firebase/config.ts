@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User } from 'firebase/auth';
+import { INITIAL_ADMINS } from '../data/initialData';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
@@ -64,19 +65,23 @@ export async function loginAdmin(email: string, pass: string): Promise<AdminSess
       body: JSON.stringify({ email: cleanEmail, password: cleanPass })
     });
 
-    const json = await res.json();
-    if (res.ok && json.success && json.session) {
-      setStoredAdminSession(json.session);
-      return json.session;
-    } else if (json.message && !json.message.includes('<!DOCTYPE') && !json.message.includes('404')) {
-      throw new Error(json.message);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.session) {
+        setStoredAdminSession(json.session);
+        return json.session;
+      }
+    } else {
+      const json = await res.json().catch(() => ({}));
+      if (json.message && json.message.includes('Password yang Anda masukkan salah')) {
+        throw new Error(json.message);
+      }
     }
   } catch (err: any) {
-    // If the server explicitly returned an auth error (e.g. wrong password or email not found), throw it
-    if (err.message && !err.message.includes('fetch') && !err.message.includes('Failed to fetch') && !err.message.includes('<!DOCTYPE') && !err.message.includes('JSON')) {
+    if (err.message && err.message.includes('Password yang Anda masukkan salah')) {
       throw err;
     }
-    console.warn('Server auth fetch issue, falling back to direct sheet/local checks:', err?.message);
+    console.warn('Server auth fetch issue, falling back to direct sheet/initial checks:', err?.message);
   }
 
   // 2. Direct check against Google Apps Script Web App (sheet=ADMINS) if configured
@@ -127,6 +132,41 @@ export async function loginAdmin(email: string, pass: string): Promise<AdminSess
         throw err;
       }
       console.warn('Direct Apps Script auth check notice:', err?.message);
+    }
+  }
+
+  // 3. Check against Built-in INITIAL_ADMINS (e.g. sabil, herman, admin_sarpras)
+  try {
+    const hashedInput = await sha256Browser(cleanPass);
+    const foundInitial = INITIAL_ADMINS.find(a => 
+      (a.email && a.email.toLowerCase() === cleanEmail) || 
+      (a.username && a.username.toLowerCase() === cleanEmail)
+    );
+
+    if (foundInitial) {
+      const storedPass = String(foundInitial.password_hash || '').trim();
+      const isValid = 
+        storedPass === cleanPass || 
+        storedPass.toLowerCase() === cleanPass.toLowerCase() ||
+        storedPass === hashedInput ||
+        storedPass.toLowerCase() === hashedInput.toLowerCase();
+
+      if (isValid) {
+        const session: AdminSession = {
+          uid: foundInitial.id,
+          email: foundInitial.email,
+          displayName: foundInitial.nama,
+          role: foundInitial.role
+        };
+        setStoredAdminSession(session);
+        return session;
+      } else {
+        throw new Error('Password yang Anda masukkan salah. Periksa kembali password administrator Anda.');
+      }
+    }
+  } catch (err: any) {
+    if (err.message && err.message.includes('Password yang Anda masukkan salah')) {
+      throw err;
     }
   }
 
