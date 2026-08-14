@@ -250,7 +250,7 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({ room, sarprasL
         {/* Modal Footer */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <div>
-            Data tersambung dengan Google Spreadsheet ID: <code className="text-indigo-700 bg-white px-1.5 py-0.5 border border-slate-200 rounded font-mono font-semibold">1eLuivd...</code>
+            Data tersinkronisasi otomatis dengan Google Spreadsheet Database
           </div>
           <button
             onClick={onClose}

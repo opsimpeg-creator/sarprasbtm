@@ -114,7 +114,7 @@ export default function App() {
         lastUpdated={stats?.lastUpdated}
         isSyncing={isSyncing}
         onRefreshSheets={handleRefreshSheets}
-        spreadsheetId="1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0"
+        spreadsheetId={(import.meta.env.VITE_GOOGLE_SHEETS_ID || import.meta.env.VITE_SPREADSHEET_ID || '') as string}
       />
 
       {/* Main Container Views */}

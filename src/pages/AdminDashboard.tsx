@@ -1216,7 +1216,7 @@ function doPost(e) {
               </div>
 
               <a
-                href={`https://docs.google.com/spreadsheets/d/1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0`}
+                href={`https://docs.google.com/spreadsheets/d/${(import.meta.env.VITE_GOOGLE_SHEETS_ID || import.meta.env.VITE_SPREADSHEET_ID || '')}`}
                 target="_blank"
                 rel="noreferrer"
                 className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm"
@@ -1227,7 +1227,7 @@ function doPost(e) {
             </div>
 
             <div className="p-4 bg-slate-900 text-slate-100 border border-slate-800 rounded-lg space-y-2 text-xs font-mono">
-              <div>Spreadsheet ID: <span className="text-emerald-400 font-bold">1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0</span></div>
+              <div>Spreadsheet ID: <span className="text-emerald-400 font-bold">{(import.meta.env.VITE_GOOGLE_SHEETS_ID || import.meta.env.VITE_SPREADSHEET_ID || 'Terkonfigurasi via Environment')}</span></div>
               <div>Sheet ROOMS: <span className="text-indigo-300">{rooms.length} Baris Data Ruangan</span></div>
               <div>Sheet SARPRAS: <span className="text-indigo-300">{sarpras.length} Baris Data Inventaris</span></div>
               <div>Sheet ADMINS: <span className="text-rose-400 font-bold">{admins.length || 2} User Admin &amp; Password Hashed (SHA-256)</span></div>

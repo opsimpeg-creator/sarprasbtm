@@ -79,52 +79,55 @@ export async function loginAdmin(email: string, pass: string): Promise<AdminSess
     console.warn('Server auth fetch issue, falling back to direct sheet/local checks:', err?.message);
   }
 
-  // 2. Direct check against Google Apps Script Web App (sheet=ADMINS)
-  try {
-    const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzi4ytGLJtfbDEQqLA-m5MnOTqJsKP5Aj2ALuZyMPhphUPz45o4d1FqvsoeQZt5QC36KA/exec?sheet=ADMINS';
-    const res = await fetch(appsScriptUrl);
-    if (res.ok) {
-      const text = await res.text();
-      const trimmed = text.trim();
-      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
-        const admins = JSON.parse(trimmed);
-        if (Array.isArray(admins)) {
-          const hashedInput = await sha256Browser(cleanPass);
-          const found = admins.find((a: any) => {
-            const aEmail = String(a.email || '').trim().toLowerCase();
-            const aUser = String(a.username || '').trim().toLowerCase();
-            return aEmail === cleanEmail || aUser === cleanEmail;
-          });
+  // 2. Direct check against Google Apps Script Web App (sheet=ADMINS) if configured
+  const appsScriptBaseUrl = (import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || import.meta.env.VITE_APPS_SCRIPT_URL || '') as string;
+  if (appsScriptBaseUrl) {
+    try {
+      const appsScriptUrl = `${appsScriptBaseUrl}?sheet=ADMINS`;
+      const res = await fetch(appsScriptUrl);
+      if (res.ok) {
+        const text = await res.text();
+        const trimmed = text.trim();
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+          const admins = JSON.parse(trimmed);
+          if (Array.isArray(admins)) {
+            const hashedInput = await sha256Browser(cleanPass);
+            const found = admins.find((a: any) => {
+              const aEmail = String(a.email || '').trim().toLowerCase();
+              const aUser = String(a.username || '').trim().toLowerCase();
+              return aEmail === cleanEmail || aUser === cleanEmail;
+            });
 
-          if (found) {
-            const storedPass = String(found.password_hash || found.password || '').trim();
-            const isValid = 
-              storedPass === cleanPass || 
-              storedPass.toLowerCase() === cleanPass.toLowerCase() ||
-              storedPass === hashedInput ||
-              storedPass.toLowerCase() === hashedInput.toLowerCase();
+            if (found) {
+              const storedPass = String(found.password_hash || found.password || '').trim();
+              const isValid = 
+                storedPass === cleanPass || 
+                storedPass.toLowerCase() === cleanPass.toLowerCase() ||
+                storedPass === hashedInput ||
+                storedPass.toLowerCase() === hashedInput.toLowerCase();
 
-            if (isValid) {
-              const session: AdminSession = {
-                uid: found.id || `ADM-${Date.now()}`,
-                email: found.email || `${cleanEmail}@smkn1batumandi.sch.id`,
-                displayName: found.nama || found.username || 'Admin Sarpras',
-                role: found.role || 'Petugas Sarpras'
-              };
-              setStoredAdminSession(session);
-              return session;
-            } else {
-              throw new Error('Password yang Anda masukkan salah. Periksa kembali password administrator Anda.');
+              if (isValid) {
+                const session: AdminSession = {
+                  uid: found.id || `ADM-${Date.now()}`,
+                  email: found.email || `${cleanEmail}@smkn1batumandi.sch.id`,
+                  displayName: found.nama || found.username || 'Admin Sarpras',
+                  role: found.role || 'Petugas Sarpras'
+                };
+                setStoredAdminSession(session);
+                return session;
+              } else {
+                throw new Error('Password yang Anda masukkan salah. Periksa kembali password administrator Anda.');
+              }
             }
           }
         }
       }
+    } catch (err: any) {
+      if (err.message && err.message.includes('Password yang Anda masukkan salah')) {
+        throw err;
+      }
+      console.warn('Direct Apps Script auth check notice:', err?.message);
     }
-  } catch (err: any) {
-    if (err.message && err.message.includes('Password yang Anda masukkan salah')) {
-      throw err;
-    }
-    console.warn('Direct Apps Script auth check notice:', err?.message);
   }
 
   // 3. Check if real Firebase auth is configured
