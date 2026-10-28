@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
 import Papa from 'papaparse';
 import { Room, Sarpras, AdminUser, StatsSummary } from './src/types.js';
@@ -371,90 +372,6 @@ async function startServer() {
     res.status(201).json({ success: true, data: newItem, message: 'Barang sarpras berhasil ditambahkan' });
   });
 
-  // Bulk Import Sarpras
-  app.post('/api/sarpras/bulk-import', (req: Request, res: Response) => {
-    const { items, mode = 'append' } = req.body;
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ success: false, message: 'Tidak ada data barang yang dikirim untuk diimport' });
-    }
-
-    let maxIdNum = 0;
-    store.sarpras.forEach(s => {
-      const match = s.id?.match(/SRP-(\d+)/);
-      if (match) {
-        const n = parseInt(match[1], 10);
-        if (n > maxIdNum) maxIdNum = n;
-      }
-    });
-
-    const inserted: Sarpras[] = [];
-    const updated: Sarpras[] = [];
-
-    items.forEach((item: any) => {
-      // Find room by id or kode_ruangan or fallback
-      let targetRoomId = item.room_id;
-      if (!targetRoomId || !store.rooms.some(r => r.id === targetRoomId)) {
-        const found = store.rooms.find(r => 
-          r.id.toLowerCase() === String(item.room_id || '').toLowerCase() ||
-          r.kode_ruangan.toLowerCase() === String(item.kode_ruangan || item.room_id || '').toLowerCase() ||
-          r.nama_ruangan.toLowerCase() === String(item.nama_ruangan || item.room_id || '').toLowerCase()
-        );
-        targetRoomId = found ? found.id : (store.rooms[0]?.id || 'ROOM-001');
-      }
-
-      // Check if item already exists if mode === 'merge' or item.id provided
-      const existingIdx = store.sarpras.findIndex(s => 
-        (item.id && s.id === item.id) || 
-        (mode === 'merge' && s.room_id === targetRoomId && s.nama_barang.toLowerCase().trim() === String(item.nama_barang || '').toLowerCase().trim())
-      );
-
-      if (existingIdx !== -1 && mode === 'merge') {
-        store.sarpras[existingIdx] = {
-          ...store.sarpras[existingIdx],
-          ...item,
-          room_id: targetRoomId,
-          jumlah: Number(item.jumlah) || store.sarpras[existingIdx].jumlah,
-          updated_at: new Date().toISOString()
-        };
-        updated.push(store.sarpras[existingIdx]);
-        sendToAppsScript('SARPRAS', 'UPDATE', store.sarpras[existingIdx]);
-      } else {
-        maxIdNum++;
-        const newId = item.id || `SRP-${String(maxIdNum).padStart(3, '0')}`;
-        const newSarpras: Sarpras = {
-          id: newId,
-          room_id: targetRoomId,
-          nama_barang: String(item.nama_barang || 'Barang Import').trim(),
-          kategori: String(item.kategori || 'Fasilitas').trim(),
-          merk: String(item.merk || '-').trim(),
-          spesifikasi: String(item.spesifikasi || '-').trim(),
-          jumlah: Math.max(1, Number(item.jumlah) || 1),
-          satuan: String(item.satuan || 'Unit').trim(),
-          kondisi: ['Baik', 'Rusak Ringan', 'Rusak Berat', 'Tidak Layak'].includes(item.kondisi) ? item.kondisi : 'Baik',
-          tahun_pengadaan: String(item.tahun_pengadaan || new Date().getFullYear().toString()).trim(),
-          sumber_dana: String(item.sumber_dana || 'BOS Reguler').trim(),
-          keterangan: String(item.keterangan || '').trim(),
-          foto: item.foto || '',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        store.sarpras.push(newSarpras);
-        inserted.push(newSarpras);
-        sendToAppsScript('SARPRAS', 'INSERT', newSarpras);
-      }
-    });
-
-    saveStore(store);
-
-    res.json({
-      success: true,
-      message: `Berhasil mengimport ${inserted.length + updated.length} barang sarpras (${inserted.length} baru, ${updated.length} diperbarui).`,
-      insertedCount: inserted.length,
-      updatedCount: updated.length,
-      totalSarpras: store.sarpras.length
-    });
-  });
-
   // Update Sarpras
   app.put('/api/sarpras/:id', (req: Request, res: Response) => {
     const index = store.sarpras.findIndex(s => s.id === req.params.id);
@@ -479,6 +396,60 @@ async function startServer() {
     saveStore(store);
     sendToAppsScript('SARPRAS', 'DELETE', null, req.params.id);
     res.json({ success: true, message: 'Barang sarpras berhasil dihapus' });
+  });
+
+  // Admin Authentication Endpoint against Spreadsheet Database
+  app.post('/api/auth/login', (req: Request, res: Response) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email administrator dan password wajib diisi.' });
+    }
+
+    const inputEmail = String(email).trim().toLowerCase();
+    const inputPass = String(password).trim();
+    const hashedInput = crypto.createHash('sha256').update(inputPass).digest('hex');
+
+    const admin = store.admins.find(a => 
+      (a.email && a.email.toLowerCase() === inputEmail) || 
+      (a.username && a.username.toLowerCase() === inputEmail)
+    );
+
+    if (!admin) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Email administrator tidak terdaftar dalam database Spreadsheet ADMINS.' 
+      });
+    }
+
+    if (admin.status === 'Nonaktif') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Akun administrator ini berstatus Nonaktif.' 
+      });
+    }
+
+    const storedPass = (admin.password_hash || '').trim();
+    const isPasswordValid = storedPass === inputPass || storedPass === hashedInput;
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Password yang Anda masukkan salah.' 
+      });
+    }
+
+    const session: AdminSession = {
+      uid: admin.id || `ADM-${Date.now()}`,
+      email: admin.email,
+      displayName: admin.nama || admin.username || 'Admin Sarpras',
+      role: (admin.role as any) || 'Petugas Sarpras'
+    };
+
+    return res.json({
+      success: true,
+      message: 'Login berhasil',
+      session
+    });
   });
 
   // Get All Admins

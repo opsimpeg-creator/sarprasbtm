@@ -177,20 +177,3 @@ export async function pushAllToSheets(): Promise<{ message: string; adminsCount:
   if (!res.ok) throw new Error('Gagal mengirim data ke Google Sheets');
   return await res.json();
 }
-
-export async function bulkImportSarpras(
-  items: Partial<Sarpras>[],
-  mode: 'append' | 'merge' = 'append'
-): Promise<{ success: boolean; message: string; insertedCount: number; updatedCount: number; totalSarpras: number }> {
-  const res = await fetch(`${API_BASE}/sarpras/bulk-import`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items, mode })
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Gagal melakukan import data sarpras' }));
-    throw new Error(err.message || 'Gagal melakukan import data sarpras');
-  }
-  return await res.json();
-}
-

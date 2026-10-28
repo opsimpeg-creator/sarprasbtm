@@ -91,26 +91,6 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
             
-            {/* Sync Status Button */}
-            {onRefreshSheets && (
-              <button
-                onClick={onRefreshSheets}
-                disabled={isSyncing}
-                title="Sinkronkan data dengan Google Spreadsheet ID: 1eLuivd_i6h3vl1CtM2n7ousp98NP5cwkyPFMEzUveC0"
-                className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-xs border border-slate-200 transition-all active:scale-95"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isSyncing ? 'animate-spin' : ''}`} />
-                <div className="text-left leading-tight">
-                  <div className="font-bold text-[11px] text-emerald-700">Google Sheets Live</div>
-                  {lastUpdated && (
-                    <div className="text-[10px] text-slate-500">
-                      {new Date(lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  )}
-                </div>
-              </button>
-            )}
-
             {/* Admin Login / Logout */}
             {adminSession ? (
               <div className="flex items-center gap-2">

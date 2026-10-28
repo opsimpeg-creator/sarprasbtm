@@ -42,7 +42,28 @@ export function setStoredAdminSession(session: AdminSession | null) {
 }
 
 export async function loginAdmin(email: string, pass: string): Promise<AdminSession> {
-  // Check if real Firebase auth is configured
+  // 1. Authenticate against Server API (/api/auth/login) which uses Spreadsheet Database ADMINS
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+
+    const json = await res.json();
+    if (res.ok && json.success && json.session) {
+      setStoredAdminSession(json.session);
+      return json.session;
+    } else if (json.message) {
+      throw new Error(json.message);
+    }
+  } catch (err: any) {
+    if (err.message && !err.message.includes('fetch')) {
+      throw err;
+    }
+  }
+
+  // 2. Check if real Firebase auth is configured
   if (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY !== 'demo-api-key') {
     try {
       const res = await signInWithEmailAndPassword(auth, email, pass);
@@ -55,73 +76,35 @@ export async function loginAdmin(email: string, pass: string): Promise<AdminSess
       setStoredAdminSession(session);
       return session;
     } catch (err: any) {
-      console.warn('Firebase auth failed or not configured, checking demo credential fallback:', err);
+      console.warn('Firebase auth check notice:', err?.message);
     }
   }
 
-  // Check custom created or reset admins from localStorage
+  // 3. Check custom created or reset admins from localStorage if offline
   const savedAdminsStr = localStorage.getItem('smk_custom_admins_store');
   if (savedAdminsStr) {
     try {
       const customAdmins = JSON.parse(savedAdminsStr);
       if (Array.isArray(customAdmins)) {
         const found = customAdmins.find((a: any) => 
-          a.email.toLowerCase() === email.toLowerCase() || 
+          (a.email && a.email.toLowerCase() === email.toLowerCase()) || 
           (a.username && a.username.toLowerCase() === email.toLowerCase())
         );
-        if (found && found.custom_password) {
-          if (found.custom_password === pass) {
-            const session: AdminSession = {
-              uid: found.id || `custom-uid-${Date.now()}`,
-              email: found.email,
-              displayName: found.nama,
-              role: found.role || 'Petugas Sarpras'
-            };
-            setStoredAdminSession(session);
-            return session;
-          }
+        if (found && found.custom_password && found.custom_password === pass) {
+          const session: AdminSession = {
+            uid: found.id || `custom-uid-${Date.now()}`,
+            email: found.email,
+            displayName: found.nama,
+            role: found.role || 'Petugas Sarpras'
+          };
+          setStoredAdminSession(session);
+          return session;
         }
       }
     } catch (e) {}
   }
 
-  // Demo Admin Fallback for instant testing
-  if (email === 'admin@smkn1batumandi.sch.id' && (pass === 'admin123' || pass === 'smkn1batumandi')) {
-
-    const session: AdminSession = {
-      uid: 'demo-admin-uid-1',
-      email: 'admin@smkn1batumandi.sch.id',
-      displayName: 'Petugas Sarpras SMKN 1 Batumandi',
-      role: 'Petugas Sarpras'
-    };
-    setStoredAdminSession(session);
-    return session;
-  }
-
-  if (email === 'hermansyaufi96@admin.smk.belajar.id' && (pass === 'admin123' || pass === 'superadmin')) {
-    const session: AdminSession = {
-      uid: 'demo-admin-uid-2',
-      email: 'hermansyaufi96@admin.smk.belajar.id',
-      displayName: 'Herman Syaufi (Super Admin)',
-      role: 'Super Admin'
-    };
-    setStoredAdminSession(session);
-    return session;
-  }
-
-  // Generic fallback if pass is 'admin123'
-  if (pass === 'admin123') {
-    const session: AdminSession = {
-      uid: `demo-uid-${Date.now()}`,
-      email: email,
-      displayName: email.split('@')[0].toUpperCase(),
-      role: 'Petugas Sarpras'
-    };
-    setStoredAdminSession(session);
-    return session;
-  }
-
-  throw new Error('Email atau password salah! (Demo password: admin123)');
+  throw new Error('Email administrator atau password salah. Pastikan akun terdaftar di database Spreadsheet ADMINS.');
 }
 
 export async function logoutAdmin(): Promise<void> {

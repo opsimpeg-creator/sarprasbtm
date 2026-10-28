@@ -17,13 +17,11 @@ import {
 } from '../services/apiService';
 import { RoomFormModal } from '../components/modals/RoomFormModal';
 import { SarprasFormModal } from '../components/modals/SarprasFormModal';
-import { ImportSarprasModal } from '../components/modals/ImportSarprasModal';
 import { SiteplanEditor } from '../components/SiteplanEditor';
 import { SettingsTab } from '../components/SettingsTab';
 import {
   Building2,
   Package,
-  Upload,
   LayoutDashboard,
   FileSpreadsheet,
   MapPin,
@@ -448,8 +446,6 @@ function doPost(e) {
 
   const [isSarprasModalOpen, setIsSarprasModalOpen] = useState(false);
   const [editingSarpras, setEditingSarpras] = useState<Sarpras | null>(null);
-
-  const [isImportSarprasModalOpen, setIsImportSarprasModalOpen] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -988,15 +984,6 @@ function doPost(e) {
 
               <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <button
-                  onClick={() => setIsImportSarprasModalOpen(true)}
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow flex items-center gap-1.5 transition-all active:scale-95 border border-emerald-400/40"
-                  title="Import data inventaris massal dari file Excel (.xlsx / .xls) atau CSV"
-                >
-                  <Upload className="w-4 h-4 text-emerald-200" />
-                  <span>Import Excel / CSV</span>
-                </button>
-
-                <button
                   onClick={handlePrintSarprasReport}
                   className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-lg shadow flex items-center gap-1.5 transition-all active:scale-95"
                   title="Cetak atau simpan Laporan Resmi Sarpras dalam bentuk PDF"
@@ -1064,27 +1051,16 @@ function doPost(e) {
                 </select>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => setIsImportSarprasModalOpen(true)}
-                  className="px-3.5 py-2.5 bg-white hover:bg-slate-50 text-emerald-800 border border-emerald-300 font-bold text-xs rounded-lg flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
-                  title="Import data inventaris dari Excel / CSV"
-                >
-                  <Upload className="w-4 h-4 text-emerald-600" />
-                  <span>Import Excel</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setEditingSarpras(null);
-                    setIsSarprasModalOpen(true);
-                  }}
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center gap-2 shadow-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  Tambah Barang Sarpras
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setEditingSarpras(null);
+                  setIsSarprasModalOpen(true);
+                }}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center gap-2 shadow-sm shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                Tambah Barang Sarpras
+              </button>
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -1387,13 +1363,6 @@ function doPost(e) {
         rooms={rooms}
         onClose={() => setIsSarprasModalOpen(false)}
         onSave={handleSaveSarpras}
-      />
-
-      <ImportSarprasModal
-        isOpen={isImportSarprasModalOpen}
-        onClose={() => setIsImportSarprasModalOpen(false)}
-        rooms={rooms}
-        onSuccess={loadData}
       />
 
     </div>
