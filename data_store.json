@@ -17,7 +17,7 @@
       "foto": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80",
       "status": "Aktif",
       "created_at": "2026-01-10 8:00:00",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788151548443",
@@ -36,7 +36,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-08-31T04:45:48.443Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788316396256",
@@ -55,7 +55,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T02:33:16.256Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788316771047",
@@ -74,7 +74,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T02:39:31.047Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788316936360",
@@ -93,7 +93,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T02:42:16.360Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788317137809",
@@ -112,7 +112,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T02:45:37.809Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788317273859",
@@ -131,12 +131,12 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T02:47:53.859Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788317383838",
       "kode_ruangan": "9",
-      "nama_ruangan": "RPS AKL",
+      "nama_ruangan": "RPS AKL ",
       "jenis_ruangan": "Laboratorium",
       "lantai": 1,
       "posisi_siteplan": {
@@ -150,7 +150,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T02:49:43.838Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788323536822",
@@ -169,7 +169,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:32:16.822Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788323905550",
@@ -188,7 +188,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:38:25.550Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788323953918",
@@ -207,7 +207,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:39:13.918Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788323994284",
@@ -226,7 +226,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:39:54.284Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788324040814",
@@ -245,12 +245,12 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:40:40.814Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788324089560",
       "kode_ruangan": "15",
-      "nama_ruangan": "RPS DPIB",
+      "nama_ruangan": "RPS DPIB ",
       "jenis_ruangan": "Laboratorium",
       "lantai": 1,
       "posisi_siteplan": {
@@ -264,7 +264,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:41:29.560Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788324130690",
@@ -283,7 +283,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:42:10.690Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788324188538",
@@ -302,7 +302,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:43:08.538Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788324236496",
@@ -321,7 +321,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:43:56.496Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788324703769",
@@ -340,7 +340,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T04:51:43.769Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788325269189",
@@ -359,7 +359,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:01:09.189Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788325521593",
@@ -378,7 +378,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:05:21.593Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788325658733",
@@ -397,7 +397,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:07:38.733Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788325793684",
@@ -416,7 +416,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:09:53.684Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788325826838",
@@ -435,7 +435,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:10:26.838Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788325912753",
@@ -454,7 +454,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:11:52.753Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788325950237",
@@ -473,7 +473,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:12:30.237Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788326848895",
@@ -492,7 +492,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:27:28.895Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788326884487",
@@ -511,7 +511,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:28:04.487Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788326940591",
@@ -530,7 +530,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:29:00.591Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788326995459",
@@ -549,7 +549,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:29:55.459Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788327368476",
@@ -568,7 +568,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:36:08.476Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788327978516",
@@ -587,7 +587,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:46:18.516Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788328020104",
@@ -606,7 +606,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:47:00.104Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788328105340",
@@ -625,7 +625,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:48:25.340Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788328187894",
@@ -644,7 +644,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:49:47.894Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788328213178",
@@ -663,7 +663,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:50:13.178Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788328235592",
@@ -682,7 +682,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:50:35.592Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788328563098",
@@ -701,7 +701,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:56:03.098Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788328599954",
@@ -720,7 +720,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T05:56:39.954Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788328917472",
@@ -739,7 +739,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T06:01:57.472Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788336158463",
@@ -758,7 +758,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T08:02:38.463Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788336184289",
@@ -777,7 +777,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T08:03:04.289Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788336210567",
@@ -796,7 +796,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T08:03:30.567Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788336243875",
@@ -815,12 +815,12 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T08:04:03.875Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788336537075",
       "kode_ruangan": "45",
-      "nama_ruangan": "AULA",
+      "nama_ruangan": "AULA ",
       "jenis_ruangan": "Lainnya",
       "lantai": 1,
       "posisi_siteplan": {
@@ -830,11 +830,11 @@
         "height": 75,
         "color": "#2563eb"
       },
-      "deskripsi": "AULA",
+      "deskripsi": "AULA ",
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-02T08:08:57.075Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788399234550",
@@ -853,7 +853,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-03T01:33:54.550Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788399261975",
@@ -872,7 +872,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-03T01:34:21.975Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788399895612",
@@ -891,7 +891,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-03T01:44:55.612Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     },
     {
       "id": "ROOM-1788400063305",
@@ -910,7 +910,7 @@
       "foto": "",
       "status": "Aktif",
       "created_at": "2026-09-03T01:47:43.305Z",
-      "updated_at": "2026-10-28T02:44:11.651Z"
+      "updated_at": "2026-10-28T03:01:48.625Z"
     }
   ],
   "sarpras": [
@@ -1264,6 +1264,6 @@
       "updated_at": "2026-08-12T03:56:14.318Z"
     }
   ],
-  "lastUpdated": "2026-10-28T02:44:11.652Z",
+  "lastUpdated": "2026-10-28T03:01:48.625Z",
   "isSyncedWithSheets": true
 }

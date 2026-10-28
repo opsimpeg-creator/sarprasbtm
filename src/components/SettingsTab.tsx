@@ -103,7 +103,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ admins, onAdminsUpdate
         nama: newAdmin.nama,
         username: newAdmin.username || newAdmin.email.split('@')[0],
         email: newAdmin.email,
-        password_hash: newAdmin.password,
         role: newAdmin.role,
         status: 'Aktif'
       });
@@ -148,7 +147,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ admins, onAdminsUpdate
 
     try {
       await updateAdmin(resetPassModalAdmin.id, {
-        password_hash: newResetPassword,
         status: 'Aktif'
       });
 
