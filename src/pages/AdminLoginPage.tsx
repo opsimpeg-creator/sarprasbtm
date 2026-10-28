@@ -75,12 +75,11 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onSuccess, onBac
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="Contoh: sabil atau sabil@admin.com"
+                placeholder="username"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all font-medium"
               />
             </div>
             <p className="text-[11px] text-slate-400 mt-1">
-              Gunakan akun yang telah didaftarkan pada sheet <strong>ADMINS</strong> di Google Sheets.
             </p>
           </div>
 
