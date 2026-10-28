@@ -194,7 +194,8 @@ export async function getAllSarpras(roomId?: string): Promise<Sarpras[]> {
   try {
     const sheetData = await fetchDirectSheetCSV('SARPRAS');
     if (sheetData && sheetData.length > 0) {
-      list = sheetData.map((row: any, index: number) => ({
+      const valid = sheetData.filter((row: any) => row.nama_barang && String(row.nama_barang).trim() !== '');
+      list = valid.map((row: any, index: number) => ({
         id: row.id || `SRP-${String(index + 1).padStart(3, '0')}`,
         room_id: row.room_id || 'ROOM-001',
         nama_barang: row.nama_barang || `Barang ${index + 1}`,
@@ -217,13 +218,11 @@ export async function getAllSarpras(roomId?: string): Promise<Sarpras[]> {
     console.warn('Direct Google Sheet fetch for SARPRAS failed:', err);
   }
 
-  // 3. Cached localStorage or Initial Dataset Fallback (if SARPRAS sheet has 0 rows)
+  // 3. Cached localStorage Fallback (if any previously saved)
   if (list.length === 0) {
     const cached = getCachedSarpras();
-    if (cached && cached.length > 0) {
+    if (cached) {
       list = cached;
-    } else {
-      list = INITIAL_SARPRAS;
     }
   }
 
@@ -579,26 +578,25 @@ export async function syncSheetsData(): Promise<{ message: string; lastUpdated: 
       setCachedRooms(parsedRooms);
     }
 
-    if (sarprasData.length > 0) {
-      const parsedSarpras: Sarpras[] = sarprasData.map((row: any, index: number) => ({
-        id: row.id || `SRP-${String(index + 1).padStart(3, '0')}`,
-        room_id: row.room_id || 'ROOM-001',
-        nama_barang: row.nama_barang || `Barang ${index + 1}`,
-        kategori: row.kategori || 'Fasilitas',
-        merk: row.merk || '-',
-        spesifikasi: row.spesifikasi || '-',
-        jumlah: Number(row.jumlah) || 1,
-        satuan: row.satuan || 'Unit',
-        kondisi: row.kondisi || 'Baik',
-        tahun_pengadaan: row.tahun_pengadaan || '2023',
-        sumber_dana: row.sumber_dana || 'BOS',
-        keterangan: row.keterangan || '',
-        foto: row.foto || '',
-        created_at: row.created_at || new Date().toISOString(),
-        updated_at: row.updated_at || new Date().toISOString()
-      }));
-      setCachedSarpras(parsedSarpras);
-    }
+    const validSarprasRows = (sarprasData || []).filter((row: any) => row.nama_barang && String(row.nama_barang).trim() !== '');
+    const parsedSarpras: Sarpras[] = validSarprasRows.map((row: any, index: number) => ({
+      id: row.id || `SRP-${String(index + 1).padStart(3, '0')}`,
+      room_id: row.room_id || 'ROOM-001',
+      nama_barang: row.nama_barang || `Barang ${index + 1}`,
+      kategori: row.kategori || 'Fasilitas',
+      merk: row.merk || '-',
+      spesifikasi: row.spesifikasi || '-',
+      jumlah: Number(row.jumlah) || 1,
+      satuan: row.satuan || 'Unit',
+      kondisi: row.kondisi || 'Baik',
+      tahun_pengadaan: row.tahun_pengadaan || '2023',
+      sumber_dana: row.sumber_dana || 'BOS',
+      keterangan: row.keterangan || '',
+      foto: row.foto || '',
+      created_at: row.created_at || new Date().toISOString(),
+      updated_at: row.updated_at || new Date().toISOString()
+    }));
+    setCachedSarpras(parsedSarpras);
 
     if (adminsData.length > 0) {
       const parsedAdmins: AdminUser[] = adminsData.map((row: any, index: number) => ({

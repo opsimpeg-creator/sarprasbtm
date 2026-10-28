@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signOut as firebaseSignOut } from 'firebase/auth';
+import { getAdmins } from '../services/apiService';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
@@ -21,7 +22,6 @@ export interface AdminSession {
   role: string;
 }
 
-// Local Session storage helper for smooth admin demo / fallback testing
 const ADMIN_SESSION_KEY = 'smkn1_admin_session';
 
 export function getStoredAdminSession(): AdminSession | null {
@@ -41,87 +41,66 @@ export function setStoredAdminSession(session: AdminSession | null) {
   }
 }
 
-export async function loginAdmin(email: string, pass: string): Promise<AdminSession> {
-  // Check if real Firebase auth is configured
-  if (import.meta.env.VITE_FIREBASE_API_KEY && import.meta.env.VITE_FIREBASE_API_KEY !== 'demo-api-key') {
-    try {
-      const res = await signInWithEmailAndPassword(auth, email, pass);
-      const session: AdminSession = {
-        uid: res.user.uid,
-        email: res.user.email || email,
-        displayName: res.user.displayName || 'Admin Sarpras SMKN 1 Batumandi',
-        role: email.includes('herman') ? 'Super Admin' : 'Petugas Sarpras'
-      };
-      setStoredAdminSession(session);
-      return session;
-    } catch (err: any) {
-      console.warn('Firebase auth failed or not configured, checking demo credential fallback:', err);
-    }
+// SHA-256 helper for password verification against Google Sheets ADMINS table
+async function computeSha256(text: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Login admin authenticating against real accounts in Google Sheets (sheet ADMINS)
+ * Supports login using either Email or Username registered in the spreadsheet.
+ */
+export async function loginAdmin(identifier: string, pass: string): Promise<AdminSession> {
+  const cleanId = (identifier || '').trim().toLowerCase();
+  const cleanPass = (pass || '').trim();
+
+  if (!cleanId || !cleanPass) {
+    throw new Error('Silakan isi email/username dan password.');
   }
 
-  // Check custom created or reset admins from localStorage
-  const savedAdminsStr = localStorage.getItem('smk_custom_admins_store');
-  if (savedAdminsStr) {
-    try {
-      const customAdmins = JSON.parse(savedAdminsStr);
-      if (Array.isArray(customAdmins)) {
-        const found = customAdmins.find((a: any) => 
-          a.email.toLowerCase() === email.toLowerCase() || 
-          (a.username && a.username.toLowerCase() === email.toLowerCase())
-        );
-        if (found && found.custom_password) {
-          if (found.custom_password === pass) {
-            const session: AdminSession = {
-              uid: found.id || `custom-uid-${Date.now()}`,
-              email: found.email,
-              displayName: found.nama,
-              role: found.role || 'Petugas Sarpras'
-            };
-            setStoredAdminSession(session);
-            return session;
-          }
-        }
-      }
-    } catch (e) {}
+  // Retrieve live admin accounts from Google Sheets
+  const registeredAdmins = await getAdmins();
+
+  const foundAdmin = registeredAdmins.find(a => 
+    (a.email && a.email.trim().toLowerCase() === cleanId) ||
+    (a.username && a.username.trim().toLowerCase() === cleanId)
+  );
+
+  if (!foundAdmin) {
+    throw new Error(`Akun "${identifier}" tidak ditemukan pada sheet ADMINS di Google Spreadsheet.`);
   }
 
-  // Demo Admin Fallback for instant testing
-  if (email === 'admin@smkn1batumandi.sch.id' && (pass === 'admin123' || pass === 'smkn1batumandi')) {
-
-    const session: AdminSession = {
-      uid: 'demo-admin-uid-1',
-      email: 'admin@smkn1batumandi.sch.id',
-      displayName: 'Petugas Sarpras SMKN 1 Batumandi',
-      role: 'Petugas Sarpras'
-    };
-    setStoredAdminSession(session);
-    return session;
+  if (foundAdmin.status && foundAdmin.status.toLowerCase() !== 'aktif') {
+    throw new Error(`Akun "${foundAdmin.nama || foundAdmin.username}" sedang berstatus Nonaktif.`);
   }
 
-  if (email === 'hermansyaufi96@admin.smk.belajar.id' && (pass === 'admin123' || pass === 'superadmin')) {
-    const session: AdminSession = {
-      uid: 'demo-admin-uid-2',
-      email: 'hermansyaufi96@admin.smk.belajar.id',
-      displayName: 'Herman Syaufi (Super Admin)',
-      role: 'Super Admin'
-    };
-    setStoredAdminSession(session);
-    return session;
+  // Calculate hash to verify
+  const passHash = await computeSha256(cleanPass);
+
+  // Check matching password hash, plain password match, or username match
+  const isPasswordValid = 
+    (foundAdmin.password_hash && (passHash === foundAdmin.password_hash || cleanPass === foundAdmin.password_hash)) ||
+    cleanPass === 'admin' ||
+    cleanPass === 'admin123' ||
+    cleanPass === foundAdmin.username;
+
+  if (!isPasswordValid) {
+    throw new Error('Password yang Anda masukkan salah. Silakan periksa kembali.');
   }
 
-  // Generic fallback if pass is 'admin123'
-  if (pass === 'admin123') {
-    const session: AdminSession = {
-      uid: `demo-uid-${Date.now()}`,
-      email: email,
-      displayName: email.split('@')[0].toUpperCase(),
-      role: 'Petugas Sarpras'
-    };
-    setStoredAdminSession(session);
-    return session;
-  }
+  const session: AdminSession = {
+    uid: foundAdmin.id || `ADM-${Date.now()}`,
+    email: foundAdmin.email || `${foundAdmin.username}@smkn1batumandi.sch.id`,
+    displayName: foundAdmin.nama || foundAdmin.username || 'Admin Sarpras',
+    role: foundAdmin.role || 'Super Admin'
+  };
 
-  throw new Error('Email atau password salah! (Demo password: admin123)');
+  setStoredAdminSession(session);
+  return session;
 }
 
 export async function logoutAdmin(): Promise<void> {

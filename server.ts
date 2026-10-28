@@ -65,7 +65,7 @@ function loadStore(): Store {
 
   const initialStore: Store = {
     rooms: INITIAL_ROOMS,
-    sarpras: INITIAL_SARPRAS,
+    sarpras: [],
     admins: INITIAL_ADMINS,
     lastUpdated: new Date().toISOString(),
     isSyncedWithSheets: false
@@ -141,29 +141,25 @@ async function syncWithGoogleSheets() {
       }
     }
 
-    if (sarprasData.length > 0) {
-      const syncedSarpras: Sarpras[] = sarprasData.map((row: any, index: number) => ({
-        id: row.id || `SRP-${String(index + 1).padStart(3, '0')}`,
-        room_id: row.room_id || 'ROOM-001',
-        nama_barang: row.nama_barang || `Barang ${index + 1}`,
-        kategori: row.kategori || 'Fasilitas',
-        merk: row.merk || '-',
-        spesifikasi: row.spesifikasi || '-',
-        jumlah: Number(row.jumlah) || 1,
-        satuan: row.satuan || 'Unit',
-        kondisi: row.kondisi || 'Baik',
-        tahun_pengadaan: row.tahun_pengadaan || '2023',
-        sumber_dana: row.sumber_dana || 'BOS',
-        keterangan: row.keterangan || '',
-        foto: row.foto || '',
-        created_at: row.created_at || new Date().toISOString(),
-        updated_at: row.updated_at || new Date().toISOString()
-      }));
-      if (syncedSarpras.length > 0) {
-        store.sarpras = syncedSarpras;
-        updated = true;
-      }
-    }
+    const validSarprasRows = sarprasData.filter((row: any) => row.nama_barang && String(row.nama_barang).trim() !== '');
+    store.sarpras = validSarprasRows.map((row: any, index: number) => ({
+      id: row.id || `SRP-${String(index + 1).padStart(3, '0')}`,
+      room_id: row.room_id || 'ROOM-001',
+      nama_barang: row.nama_barang || `Barang ${index + 1}`,
+      kategori: row.kategori || 'Fasilitas',
+      merk: row.merk || '-',
+      spesifikasi: row.spesifikasi || '-',
+      jumlah: Number(row.jumlah) || 1,
+      satuan: row.satuan || 'Unit',
+      kondisi: row.kondisi || 'Baik',
+      tahun_pengadaan: row.tahun_pengadaan || '2023',
+      sumber_dana: row.sumber_dana || 'BOS',
+      keterangan: row.keterangan || '',
+      foto: row.foto || '',
+      created_at: row.created_at || new Date().toISOString(),
+      updated_at: row.updated_at || new Date().toISOString()
+    }));
+    updated = true;
 
     if (adminsData.length > 0) {
       const syncedAdmins: AdminUser[] = adminsData.map((row: any, index: number) => ({
